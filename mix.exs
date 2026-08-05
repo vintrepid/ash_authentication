@@ -108,6 +108,7 @@ defmodule AshAuthentication.MixProject do
         {"documentation/dsls/DSL-AshAuthentication.UserIdentity.md",
          search_data: Spark.Docs.search_data_for(AshAuthentication.UserIdentity)},
         "documentation/topics/custom-strategy.md",
+        "documentation/topics/magic-link-security.md",
         "documentation/topics/policies-on-authentication-resources.md",
         "documentation/topics/testing.md",
         "documentation/topics/tokens.md",
