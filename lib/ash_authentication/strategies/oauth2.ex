@@ -158,7 +158,7 @@ defmodule AshAuthentication.Strategy.OAuth2 do
     actions do
       read :sign_in_with_example do
         argument :user_info, :map, allow_nil?: false
-        argument :oauth_tokens, :map, allow_nil?: false
+        argument :oauth_tokens, :map, allow_nil?: false, sensitive?: true
         prepare AshAuthentication.Strategy.OAuth2.SignInPreparation
 
         filter expr(email == get_path(^arg(:user_info), [:email]))
@@ -187,7 +187,7 @@ defmodule AshAuthentication.Strategy.OAuth2 do
     actions do
       create :register_with_oauth2 do
         argument :user_info, :map, allow_nil?: false
-        argument :oauth_tokens, :map, allow_nil?: false
+        argument :oauth_tokens, :map, allow_nil?: false, sensitive?: true
         upsert? true
         upsert_identity :email
 
@@ -231,6 +231,7 @@ defmodule AshAuthentication.Strategy.OAuth2 do
     client_authentication_method: nil,
     client_id: nil,
     client_secret: nil,
+    email_field: :email,
     icon: nil,
     id_token_signed_response_alg: nil,
     id_token_ttl_seconds: nil,
@@ -289,6 +290,7 @@ defmodule AshAuthentication.Strategy.OAuth2 do
           client_authentication_method: nil | binary,
           client_id: secret,
           client_secret: secret,
+          email_field: atom,
           icon: nil | atom,
           id_token_signed_response_alg: nil | binary,
           id_token_ttl_seconds: nil | pos_integer(),
@@ -326,27 +328,34 @@ defmodule AshAuthentication.Strategy.OAuth2 do
   defdelegate transform(strategy, dsl_state), to: Transformer
   defdelegate verify(strategy, dsl_state), to: Verifier
 
-  @uid_keys ["uid", "sub", "id", :uid, :sub, :id]
+  # The order of this list is the precedence order and it is load-bearing.
+  # String keys come first because a provider always sends strings; the atom
+  # keys only match when a caller builds `user_info` in Elixir.
+  @uid_keys ["sub", "uid", "id", :sub, :uid, :id]
 
   @doc """
   Extract the unique provider identifier (the OpenID Connect `sub` claim) from a
   provider's `user_info` map.
 
-  `uid` is the AshAuthentication convention, `sub` is the OpenID Connect claim,
-  and `id` is what some providers (eg Google in the past) have returned. The
-  same extraction must be used both when looking a user up by their identity and
-  when persisting the identity, so this is the single source of truth.
+  The first key present with a non-nil value wins, in this order: `sub` is the
+  OpenID Connect claim and the key the whole identity model is built on, `uid`
+  is the AshAuthentication convention for the same thing, and `id` is a fallback
+  for providers (eg Google in the past) which returned `id` instead of `sub`.
+  The same extraction must be used both when looking a user up by their identity
+  and when persisting the identity, so this is the single source of truth.
   """
   @spec uid_from_user_info(map) :: String.t() | nil
   def uid_from_user_info(user_info) do
-    user_info
-    |> Map.take(@uid_keys)
-    |> Map.values()
-    |> Enum.reject(&is_nil/1)
-    |> List.first()
-    |> case do
-      nil -> nil
-      uid -> to_string(uid)
-    end
+    # Iterate `@uid_keys` rather than `Map.take/2` plus `Map.values/1`.
+    # `Map.values/1` returns the map in Erlang term order, not the order the
+    # keys were given to `Map.take/2`, so a `Map`-based selection silently
+    # ignores the precedence above - it reverses it for these keys, and lets
+    # any atom key beat every string key.
+    Enum.find_value(@uid_keys, fn key ->
+      case Map.get(user_info, key) do
+        nil -> nil
+        uid -> to_string(uid)
+      end
+    end)
   end
 end

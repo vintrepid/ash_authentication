@@ -8,10 +8,22 @@ defmodule AshAuthentication.Strategy.Password.SignInWithTokenPreparation do
 
   This preparation first validates the token argument and extracts the subject
   from it and constrains the query to a matching user.
+
+  It then refuses a user who has not confirmed, when the strategy sets
+  `require_confirmed_with`. See
+  `AshAuthentication.Strategy.Password.RequireConfirmed`.
   """
   use Ash.Resource.Preparation
   alias Ash.{Query, Resource, Resource.Preparation}
-  alias AshAuthentication.{Errors.AuthenticationFailed, Info, Jwt, TokenResource}
+
+  alias AshAuthentication.{
+    Errors.AuthenticationFailed,
+    Info,
+    Jwt,
+    Strategy.Password.RequireConfirmed,
+    TokenResource
+  }
+
   require Ash.Query
 
   @doc false
@@ -22,6 +34,7 @@ defmodule AshAuthentication.Strategy.Password.SignInWithTokenPreparation do
 
     query
     |> check_sign_in_token_configuration(strategy)
+    |> RequireConfirmed.add_calculation(strategy)
     |> Query.before_action(&verify_token_and_constrain_query(&1, strategy, context))
     |> Query.after_action(&revoke_sign_in_token(&1, &2, strategy, context))
     |> Query.after_action(&verify_result(&1, &2, strategy, context))
@@ -74,12 +87,13 @@ defmodule AshAuthentication.Strategy.Password.SignInWithTokenPreparation do
   defp revoke_sign_in_token(query, [user], strategy, context) do
     token_resource = Info.authentication_tokens_token_resource!(strategy.resource)
     token = Query.get_argument(query, :token)
-    store_all_tokens? = Info.authentication_tokens_store_all_tokens?(strategy.resource)
 
+    # A sign-in token grants a session to whoever redeems it, so the revocation
+    # must be exclusive rather than idempotent.
     opts =
       context
       |> Ash.Context.to_opts()
-      |> Keyword.put(:store_all_tokens?, store_all_tokens?)
+      |> Keyword.put(:single_use?, true)
 
     case TokenResource.revoke(token_resource, token, opts) do
       :ok ->
@@ -104,27 +118,31 @@ defmodule AshAuthentication.Strategy.Password.SignInWithTokenPreparation do
   end
 
   defp verify_result(query, [user], strategy, context) do
-    claims =
-      query.context
-      |> Map.get(:token_claims, %{})
-      |> Map.take(["tenant"])
+    if RequireConfirmed.confirmed?(user, strategy) do
+      claims =
+        query.context
+        |> Map.get(:token_claims, %{})
+        |> Map.take(["tenant"])
 
-    case Jwt.token_for_user(user, claims, Ash.Context.to_opts(context)) do
-      {:ok, token, _claims} ->
-        {:ok, [Resource.put_metadata(user, :token, token)]}
+      case Jwt.token_for_user(user, claims, Ash.Context.to_opts(context)) do
+        {:ok, token, _claims} ->
+          {:ok, [Resource.put_metadata(user, :token, token)]}
 
-      :error ->
-        {:error,
-         AuthenticationFailed.exception(
-           strategy: strategy,
-           query: query,
-           caused_by: %{
-             module: __MODULE__,
-             action: query.action,
-             resource: query.resource,
-             message: "Unable to generate token for user"
-           }
-         )}
+        :error ->
+          {:error,
+           AuthenticationFailed.exception(
+             strategy: strategy,
+             query: query,
+             caused_by: %{
+               module: __MODULE__,
+               action: query.action,
+               resource: query.resource,
+               message: "Unable to generate token for user"
+             }
+           )}
+      end
+    else
+      {:error, RequireConfirmed.error(strategy, query)}
     end
   end
 
@@ -152,30 +170,8 @@ defmodule AshAuthentication.Strategy.Password.SignInWithTokenPreparation do
   defp verify_sign_in_token_purpose(%{"purpose" => "sign_in"}), do: :ok
   defp verify_sign_in_token_purpose(_), do: {:error, "The token purpose is not valid"}
 
-  defp extract_primary_keys_from_subject(%{"sub" => sub}, resource) do
-    primary_key_fields =
-      resource
-      |> Resource.Info.primary_key()
-      |> Enum.map(&to_string/1)
-      |> MapSet.new()
-
-    key_parts =
-      sub
-      |> URI.parse()
-      |> Map.get(:query, "")
-      |> URI.decode_query()
-
-    provided_key_fields =
-      key_parts
-      |> Map.keys()
-      |> MapSet.new()
-
-    if MapSet.equal?(primary_key_fields, provided_key_fields) do
-      {:ok, Enum.to_list(key_parts)}
-    else
-      {:error, "token subject doesn't contain correct keys"}
-    end
-  end
+  defp extract_primary_keys_from_subject(%{"sub" => sub}, resource),
+    do: AshAuthentication.subject_to_primary_key(sub, resource)
 
   defp extract_primary_keys_from_subject(_, _),
     do: {:error, "The token does not contain a subject"}

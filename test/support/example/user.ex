@@ -101,7 +101,7 @@ defmodule Example.User do
 
     create :register_with_auth0 do
       argument :user_info, :map, allow_nil?: false
-      argument :oauth_tokens, :map, allow_nil?: false
+      argument :oauth_tokens, :map, allow_nil?: false, sensitive?: true
       upsert? true
       upsert_identity :username
 
@@ -112,7 +112,7 @@ defmodule Example.User do
 
     create :register_with_oauth2 do
       argument :user_info, :map, allow_nil?: false
-      argument :oauth_tokens, :map, allow_nil?: false
+      argument :oauth_tokens, :map, allow_nil?: false, sensitive?: true
       upsert? true
       upsert_identity :username
 
@@ -123,7 +123,7 @@ defmodule Example.User do
 
     create :register_with_oauth2_confirm_link do
       argument :user_info, :map, allow_nil?: false
-      argument :oauth_tokens, :map, allow_nil?: false
+      argument :oauth_tokens, :map, allow_nil?: false, sensitive?: true
       upsert? true
       upsert_identity :username
 
@@ -134,7 +134,7 @@ defmodule Example.User do
 
     create :register_with_oidc do
       argument :user_info, :map, allow_nil?: false
-      argument :oauth_tokens, :map, allow_nil?: false
+      argument :oauth_tokens, :map, allow_nil?: false, sensitive?: true
       upsert? true
       upsert_identity :username
 
@@ -145,7 +145,7 @@ defmodule Example.User do
 
     read :sign_in_with_oauth2 do
       argument :user_info, :map, allow_nil?: false
-      argument :oauth_tokens, :map, allow_nil?: false
+      argument :oauth_tokens, :map, allow_nil?: false, sensitive?: true
       prepare AshAuthentication.Strategy.OAuth2.SignInPreparation
 
       filter expr(username == get_path(^arg(:user_info), [:nickname]))
@@ -153,7 +153,15 @@ defmodule Example.User do
 
     read :sign_in_with_oauth2_without_identity do
       argument :user_info, :map, allow_nil?: false
-      argument :oauth_tokens, :map, allow_nil?: false
+      argument :oauth_tokens, :map, allow_nil?: false, sensitive?: true
+      prepare AshAuthentication.Strategy.OAuth2.SignInPreparation
+
+      filter expr(username == get_path(^arg(:user_info), [:nickname]))
+    end
+
+    read :sign_in_with_oauth2_untrusted do
+      argument :user_info, :map, allow_nil?: false
+      argument :oauth_tokens, :map, allow_nil?: false, sensitive?: true
       prepare AshAuthentication.Strategy.OAuth2.SignInPreparation
 
       filter expr(username == get_path(^arg(:user_info), [:nickname]))
@@ -161,7 +169,7 @@ defmodule Example.User do
 
     create :register_with_github do
       argument :user_info, :map, allow_nil?: false
-      argument :oauth_tokens, :map, allow_nil?: false
+      argument :oauth_tokens, :map, allow_nil?: false, sensitive?: true
       upsert? true
       upsert_identity :username
 
@@ -172,7 +180,7 @@ defmodule Example.User do
 
     create :register_with_slack do
       argument :user_info, :map, allow_nil?: false
-      argument :oauth_tokens, :map, allow_nil?: false
+      argument :oauth_tokens, :map, allow_nil?: false, sensitive?: true
       upsert? true
       upsert_identity :username
 
@@ -310,6 +318,21 @@ defmodule Example.User do
         auth_method :client_secret_post
         registration_enabled? false
         identity_resource Example.UserIdentity
+      end
+
+      # A sign-in strategy with an identity resource, so the identity-linking
+      # rules are reached, and `trust_email_verified?` left at its `false`
+      # default. `Example.User` has no email attribute at all.
+      oauth2 :oauth2_untrusted do
+        client_id &get_config/2
+        redirect_uri &get_config/2
+        client_secret &get_config/2
+        base_url &get_config/2
+        authorize_url &get_config/2
+        token_url &get_config/2
+        user_url &get_config/2
+        identity_resource Example.UserIdentity
+        registration_enabled? false
       end
 
       auth0 do

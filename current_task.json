@@ -1,0 +1,36 @@
+{
+  "task": "security-refresh-4-15-0",
+  "repository": "https://github.com/vintrepid/ash_authentication.git",
+  "branch": "maintenance/ash-authentication/security-refresh-4-15-0",
+  "base_branch": "security/magic-link-hardening-v4",
+  "base_sha": "42d1af7c9d2078e193b566b75467aa1e3f9acf43",
+  "owner": "task_classifier_audit",
+  "checkout": "persistent",
+  "status": "ready_for_review",
+  "objective": "Integrate the official stable v4.15.0 security maintenance release, preserve existing magic-link guarantees, and verify revoked JTI sessions fail closed.",
+  "handoff": "Publish a verified immutable review-branch revision; no merge, deploy, consumer pin, Calvin, or provider-data changes.",
+  "upstream_tag": "v4.15.0",
+  "upstream_commit": "d6b2be35cf8f0b8ab84e7a934cfb0d91de0a3c17",
+  "verification": [
+    {
+      "command": "mix check --no-retry",
+      "toolchain": "Elixir 1.18.3 / OTP 27.3.4 (declared repository toolchain)",
+      "result": "14 native tools passed; gettext skipped by unchanged missing-package detection; 23 doctests, 1 property, 644 tests, 0 failures."
+    },
+    {
+      "command": "mix test --no-color",
+      "toolchain": "Elixir 1.20.4 / OTP 29 (app runtime)",
+      "result": "668 passed; 7 independent security regressions and 5 real separate-connection token races included."
+    },
+    {
+      "command": "mix hex.audit",
+      "result": "No retired or security advisory packages found; no exclusions."
+    },
+    {
+      "command": "SHA-256 source attestation verification",
+      "result": "All 19 security source/test anchors match; official Plug/JTI session leaves remain exactly upstream."
+    }
+  ],
+  "branch_diff_url": "https://github.com/vintrepid/ash_authentication/compare/security/magic-link-hardening-v4...maintenance/ash-authentication/security-refresh-4-15-0",
+  "deployment_status": "Not merged or deployed; no consumer pins, Calvin, production accounts or provider data changed."
+}

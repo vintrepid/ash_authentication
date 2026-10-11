@@ -31,31 +31,28 @@ defmodule AshAuthentication.Strategy.MagicLink.SignInPreparation do
          %URI{path: ^subject_name, query: primary_key} <- URI.parse(subject) do
       query
       |> Query.set_context(%{private: %{ash_authentication?: true}})
-      |> then(fn query ->
-        cond do
-          not is_nil(primary_key) ->
-            primary_key =
-              primary_key
-              |> URI.decode_query()
-              |> Enum.to_list()
-
-            Query.filter(query, ^primary_key)
-
-          identity = claims["identity"] ->
-            identity_field = strategy.identity_field
-
-            Query.filter(query, ^ref(identity_field) == ^identity)
-
-          true ->
-            Query.do_filter(query, false)
-        end
-      end)
+      |> filter_subject(primary_key, claims, strategy)
       |> Query.after_action(&handle_sign_in_result(&1, &2, strategy, claims, token, context))
     else
       _error ->
         query
         |> Query.do_filter(false)
         |> maybe_add_error_on_invalid_token()
+    end
+  end
+
+  defp filter_subject(query, primary_key, claims, strategy) do
+    cond do
+      not is_nil(primary_key) ->
+        primary_key = primary_key |> URI.decode_query() |> Enum.to_list()
+        Query.filter(query, ^primary_key)
+
+      identity = claims["identity"] ->
+        identity_field = strategy.identity_field
+        Query.filter(query, ^ref(identity_field) == ^identity)
+
+      true ->
+        Query.do_filter(query, false)
     end
   end
 
@@ -66,17 +63,18 @@ defmodule AshAuthentication.Strategy.MagicLink.SignInPreparation do
     end
   end
 
-  defp handle_sign_in_result(_query, [], _strategy, _claims, _token, _context), do: {:ok, []}
+  defp handle_sign_in_result(_query, [], _strategy, _claims, _token, _context) do
+    {:ok, []}
+  end
 
   defp revoke_single_use_token(strategy, query, token, context) do
     if strategy.single_use_token? do
       token_resource = Info.authentication_tokens_token_resource!(query.resource)
-      store_all_tokens? = Info.authentication_tokens_store_all_tokens?(query.resource)
 
       opts =
         context
         |> Ash.Context.to_opts()
-        |> Keyword.put(:store_all_tokens?, store_all_tokens?)
+        |> Keyword.put(:single_use?, true)
 
       TokenResource.revoke(token_resource, token, opts)
     else
@@ -92,8 +90,15 @@ defmodule AshAuthentication.Strategy.MagicLink.SignInPreparation do
       end
 
     case Jwt.token_for_user(record, extra_claims, Ash.Context.to_opts(context)) do
-      {:ok, token, _claims} -> {:ok, [Resource.put_metadata(record, :token, token)]}
-      {:error, error} -> {:error, error}
+      {:ok, token, _claims} ->
+        {:ok, [Resource.put_metadata(record, :token, token)]}
+
+      :error ->
+        {:error,
+         Errors.InvalidToken.exception(
+           type: :magic_link,
+           reason: "Failed to generate authentication token"
+         )}
     end
   end
 

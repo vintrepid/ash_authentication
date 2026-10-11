@@ -10,7 +10,7 @@ defmodule AshAuthentication.MixProject do
   Authentication extension for the Ash Framework.
   """
 
-  @version "4.14.2"
+  @version "4.15.0"
 
   def project do
     [
@@ -52,7 +52,7 @@ defmodule AshAuthentication.MixProject do
       },
       source_url: "https://github.com/team-alembic/ash_authentication",
       files:
-        ~w[lib .formatter.exs mix.exs README* LICENSE* CHANGELOG* documentation usage-rules.md]
+        ~w[lib .formatter.exs mix.exs README* LICENSE* CHANGELOG* documentation usage-rules.md security_attestation.json security_attestation.json.license]
     ]
   end
 
@@ -109,6 +109,7 @@ defmodule AshAuthentication.MixProject do
          search_data: Spark.Docs.search_data_for(AshAuthentication.UserIdentity)},
         "documentation/topics/custom-strategy.md",
         "documentation/topics/magic-link-security.md",
+        "documentation/topics/security-refresh-4-15-0.md",
         "documentation/topics/policies-on-authentication-resources.md",
         "documentation/topics/testing.md",
         "documentation/topics/tokens.md",
@@ -221,7 +222,8 @@ defmodule AshAuthentication.MixProject do
   defp deps do
     [
       {:argon2_elixir, "~> 4.0", optional: true},
-      {:ash, ash_version("~> 3.7")},
+      {:ash, ash_version("~> 3.34 and >= 3.34.6")},
+      {:decimal, "~> 3.1.2"},
       # Assent is pinned to version 0.2 until the 5.0 release.
       # See https://github.com/team-alembic/ash_authentication/issues/1097
       {:assent, "> 0.2.0 and < 0.3.0"},
@@ -232,7 +234,7 @@ defmodule AshAuthentication.MixProject do
       {:jason, "~> 1.4"},
       {:joken, "~> 2.5"},
       {:plug, "~> 1.13"},
-      {:spark, "~> 2.0"},
+      {:spark, "~> 2.7 and >= 2.7.6"},
       {:splode, "~> 0.2"},
 
       # Dev/test

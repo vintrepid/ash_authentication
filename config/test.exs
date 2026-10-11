@@ -10,9 +10,10 @@ config :ash_authentication, Example.Repo,
   username: "postgres",
   password: "postgres",
   hostname: "localhost",
+  port: String.to_integer(System.get_env("ASH_AUTHENTICATION_TEST_PORT", "5432")),
   database: "ash_authentication_test#{System.get_env("MIX_TEST_PARTITION")}",
   pool: Ecto.Adapters.SQL.Sandbox,
-  pool_size: 10
+  pool_size: 30
 
 config :bcrypt_elixir, :log_rounds, 4
 config :argon2_elixir, t_cost: 1, m_cost: 8

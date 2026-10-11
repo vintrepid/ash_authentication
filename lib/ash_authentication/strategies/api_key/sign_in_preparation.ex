@@ -24,43 +24,9 @@ defmodule AshAuthentication.Strategy.ApiKey.SignInPreparation do
 
       query
       |> Query.set_context(%{private: %{ash_authentication?: true}})
-      |> Ash.Query.before_action(fn query ->
-        api_key_relationship.destination
-        |> Ash.Query.do_filter(api_key_relationship.filter)
-        |> Ash.Query.filter(id == ^api_key_id)
-        |> maybe_load_tenant(strategy.multitenancy_relationship)
-        |> Query.set_context(%{private: %{ash_authentication?: true}})
-        |> Ash.read_one()
-        |> case do
-          {:ok, nil} ->
-            Plug.Crypto.secure_compare(
-              :crypto.hash(:sha256, random_bytes <> api_key_id),
-              Ecto.UUID.bingenerate() <> :crypto.strong_rand_bytes(32)
-            )
-
-            Ash.Query.filter(query, false)
-
-          {:ok, api_key} ->
-            check_api_key(
-              query,
-              api_key,
-              api_key_id,
-              strategy,
-              api_key_relationship,
-              random_bytes
-            )
-
-          {:error, error} ->
-            Ash.Query.add_error(
-              query,
-              AuthenticationFailed.exception(
-                strategy: strategy,
-                query: query,
-                caused_by: error
-              )
-            )
-        end
-      end)
+      |> Ash.Query.before_action(
+        &resolve_api_key(&1, api_key_relationship, api_key_id, strategy, random_bytes)
+      )
     else
       _ ->
         Plug.Crypto.secure_compare(
@@ -69,6 +35,33 @@ defmodule AshAuthentication.Strategy.ApiKey.SignInPreparation do
         )
 
         Query.do_filter(query, false)
+    end
+  end
+
+  defp resolve_api_key(query, api_key_relationship, api_key_id, strategy, random_bytes) do
+    api_key_relationship.destination
+    |> Ash.Query.do_filter(api_key_relationship.filter)
+    |> Ash.Query.filter(id == ^api_key_id)
+    |> maybe_load_tenant(strategy.multitenancy_relationship)
+    |> Query.set_context(%{private: %{ash_authentication?: true}})
+    |> Ash.read_one()
+    |> case do
+      {:ok, nil} ->
+        Plug.Crypto.secure_compare(
+          :crypto.hash(:sha256, random_bytes <> api_key_id),
+          Ecto.UUID.bingenerate() <> :crypto.strong_rand_bytes(32)
+        )
+
+        Ash.Query.filter(query, false)
+
+      {:ok, api_key} ->
+        check_api_key(query, api_key, api_key_id, strategy, api_key_relationship, random_bytes)
+
+      {:error, error} ->
+        Ash.Query.add_error(
+          query,
+          AuthenticationFailed.exception(strategy: strategy, query: query, caused_by: error)
+        )
     end
   end
 
@@ -127,13 +120,19 @@ defmodule AshAuthentication.Strategy.ApiKey.SignInPreparation do
     end
   end
 
+  # A token is 32 random bytes plus a 16 byte id, which encodes to at most 65
+  # base62 characters. A CRC32 is 32 bits, which encodes to at most 6.
+  @max_token_length 65
+  @max_crc32_length 6
+
   defp decode_api_key(api_key) do
     with [_parse_prefix, middle, crc32] <- String.split(api_key, "_", parts: 3),
-         {:ok, <<random_bytes::binary-size(32), id::binary-size(16)>>} <-
-           AshAuthentication.Base.bindecode62(middle),
          true <-
-           AshAuthentication.Base.decode62(crc32) ==
-             {:ok, :erlang.crc32(random_bytes <> id)} do
+           byte_size(middle) <= @max_token_length and byte_size(crc32) <= @max_crc32_length,
+         {:ok, <<random_bytes::binary-size(32), id::binary-size(16)>> = token} <-
+           AshAuthentication.Base.bindecode62(middle),
+         true <- AshAuthentication.Base.encode62(token) == middle,
+         true <- AshAuthentication.Base.encode62(:erlang.crc32(token)) == crc32 do
       {:ok, id, random_bytes}
     else
       _ ->

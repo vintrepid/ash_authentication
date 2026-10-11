@@ -38,25 +38,29 @@ defmodule AshAuthentication.Strategy.MagicLink.SignInChange do
           |> Changeset.after_transaction(&handle_transaction_result(&1, &2, context))
         else
           e ->
-            reason = error_reason(e, strategy)
-
-            case Info.find_strategy(changeset, context, opts) do
-              {:ok, strategy} ->
-                Ash.Changeset.add_error(
-                  changeset,
-                  InvalidToken.exception(
-                    field: strategy.token_param_name,
-                    reason: reason,
-                    type: :magic_link
-                  )
-                )
-            end
+            add_verification_error(changeset, e, strategy, context, opts)
         end
 
       _ ->
         Ash.Changeset.add_error(
           changeset,
           "No strategy in context, and no strategy found for action #{inspect(changeset.resource)}.#{changeset.action.name}"
+        )
+    end
+  end
+
+  defp add_verification_error(changeset, error, strategy, context, opts) do
+    reason = error_reason(error, strategy)
+
+    case Info.find_strategy(changeset, context, opts) do
+      {:ok, strategy} ->
+        Ash.Changeset.add_error(
+          changeset,
+          InvalidToken.exception(
+            field: strategy.token_param_name,
+            reason: reason,
+            type: :magic_link
+          )
         )
     end
   end
@@ -69,29 +73,31 @@ defmodule AshAuthentication.Strategy.MagicLink.SignInChange do
   end
 
   defp handle_transaction_result(_changeset, {:ok, record}, context) do
-    generate_token_for_record(record, context)
+    case Jwt.token_for_user(record, %{}, Ash.Context.to_opts(context)) do
+      {:ok, token, _claims} ->
+        {:ok, Resource.put_metadata(record, :token, token)}
+
+      :error ->
+        {:error,
+         InvalidToken.exception(
+           type: :magic_link,
+           reason: "Failed to generate authentication token"
+         )}
+    end
   end
 
   defp handle_transaction_result(_changeset, {:error, error}, _context) do
     {:error, error}
   end
 
-  defp generate_token_for_record(record, context) do
-    case Jwt.token_for_user(record, %{}, Ash.Context.to_opts(context)) do
-      {:ok, token, _claims} -> {:ok, Resource.put_metadata(record, :token, token)}
-      {:error, error} -> {:error, error}
-    end
-  end
-
   defp revoke_single_use_token(strategy, changeset, token, context) do
     if strategy.single_use_token? do
       token_resource = Info.authentication_tokens_token_resource!(changeset.resource)
-      store_all_tokens? = Info.authentication_tokens_store_all_tokens?(changeset.resource)
 
       opts =
         context
         |> Ash.Context.to_opts()
-        |> Keyword.put(:store_all_tokens?, store_all_tokens?)
+        |> Keyword.put(:single_use?, true)
 
       TokenResource.revoke(token_resource, token, opts)
     else
