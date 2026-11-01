@@ -221,37 +221,37 @@ defmodule AshAuthentication.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:argon2_elixir, "~> 4.0", optional: true},
+      {:argon2_elixir, "~> 4.1 and >= 4.1.3", optional: true},
       {:ash, ash_version("~> 3.7")},
-      # Assent is pinned to version 0.2 until the 5.0 release.
-      # See https://github.com/team-alembic/ash_authentication/issues/1097
-      {:assent, "> 0.2.0 and < 0.3.0"},
-      {:bcrypt_elixir, "~> 3.0"},
-      {:castore, "~> 1.0"},
-      {:finch, "~> 0.19"},
-      {:igniter, "~> 0.4", optional: true},
-      {:jason, "~> 1.4"},
-      {:joken, "~> 2.5"},
-      {:plug, "~> 1.13"},
-      {:spark, "~> 2.0"},
-      {:splode, "~> 0.2"},
+      # Fix Apple callback claim overrides (EEF-CVE-2026-117656).
+      # The owned fork verifies compatibility with Assent 0.3.
+      {:assent, "~> 0.3.2"},
+      {:bcrypt_elixir, "~> 3.3 and >= 3.3.2"},
+      {:castore, "~> 1.0 and >= 1.0.22"},
+      {:finch, "~> 0.24.0"},
+      {:igniter, "~> 0.8.5", optional: true},
+      {:jason, "~> 1.4 and >= 1.4.5"},
+      {:joken, "~> 2.7"},
+      {:plug, "~> 1.20 and >= 1.20.3"},
+      {:spark, "~> 2.7 and >= 2.7.9"},
+      {:splode, "~> 0.3.3"},
 
       # Dev/test
-      {:absinthe_plug, "~> 1.5", only: [:dev, :test]},
-      {:ash_graphql, "~> 1.8", only: [:dev, :test]},
-      {:ash_json_api, "~> 1.5", only: [:dev, :test]},
-      {:ash_postgres, "~> 2.6 and >= 2.6.8", optional: true},
-      {:bandit, "~> 1.0", only: [:dev, :test]},
-      {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
-      {:dialyxir, "~> 1.2", only: [:dev, :test], runtime: false},
-      {:doctor, "~> 0.18", only: [:dev, :test]},
-      {:ex_check, "~> 0.15", only: [:dev, :test]},
-      {:ex_doc, "~> 0.39", only: [:dev, :test]},
-      {:git_ops, "~> 2.4", only: [:dev, :test], runtime: false},
-      {:mimic, "~> 2.0", only: [:dev, :test]},
-      {:simple_sat, "~> 0.1", only: [:dev, :test]},
-      {:sobelow, "~> 0.12", only: [:dev, :test]},
-      {:usage_rules, "~> 1.2 and >= 1.2.8", only: [:dev]}
+      {:absinthe_plug, "~> 1.5 and >= 1.5.10", only: [:dev, :test]},
+      {:ash_graphql, "~> 1.13", only: [:dev, :test]},
+      {:ash_json_api, "~> 1.8", only: [:dev, :test]},
+      {:ash_postgres, "~> 2.15 and >= 2.15.2", optional: true},
+      {:bandit, "~> 1.14 and >= 1.14.1", only: [:dev, :test]},
+      {:credo, "~> 1.7 and >= 1.7.19", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 1.4 and >= 1.4.8", only: [:dev, :test], runtime: false},
+      {:doctor, "~> 0.23.0", only: [:dev, :test]},
+      {:ex_check, "~> 0.17.1", only: [:dev, :test]},
+      {:ex_doc, "~> 0.40.4", only: [:dev, :test]},
+      {:git_ops, "~> 2.12 and >= 2.12.3", only: [:dev, :test], runtime: false},
+      {:mimic, "~> 2.4 and >= 2.4.2", only: [:dev, :test]},
+      {:simple_sat, "~> 0.1.4", only: [:dev, :test]},
+      {:sobelow, "~> 0.18.1", only: [:dev, :test]},
+      {:usage_rules, "~> 1.3 and >= 1.3.1", only: [:dev]}
     ]
   end
 

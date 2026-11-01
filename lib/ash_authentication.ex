@@ -159,7 +159,8 @@ defmodule AshAuthentication do
     transformers: [
       AshAuthentication.Transformer,
       AshAuthentication.Transformer.SetSelectForSenders,
-      AshAuthentication.Strategy.Custom.Transformer
+      AshAuthentication.Strategy.Custom.Transformer,
+      AshAuthentication.AddOn.AuditLog.Transformer.AfterActions
     ],
     verifiers: [
       AshAuthentication.Verifier,

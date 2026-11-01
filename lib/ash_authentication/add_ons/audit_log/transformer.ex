@@ -10,12 +10,32 @@ defmodule AshAuthentication.AddOn.AuditLog.Transformer do
 
   @doc false
   def transform(strategy, dsl) do
+    dsl =
+      Transformer.persist(
+        dsl,
+        {:audit_log, strategy.name, :all_actions?},
+        strategy.include_actions == [:*]
+      )
+
     with {:ok, strategy, dsl} <- prefill_included(strategy, dsl),
          {:ok, logged_actions} <- find_logged_actions(strategy, dsl),
          {:ok, dsl} <- persist_logged_actions(strategy, dsl, logged_actions),
          {:ok, dsl} <- persist_logged_fields(strategy, dsl, logged_actions),
          {:ok, dsl} <- add_global_change(strategy, dsl) do
       add_global_preparation(strategy, dsl)
+    end
+  end
+
+  @doc false
+  def refresh_actions(strategy, dsl) do
+    if Transformer.get_persisted(dsl, {:audit_log, strategy.name, :all_actions?}) do
+      with {:ok, strategy, dsl} <- prefill_included(%{strategy | include_actions: [:*]}, dsl),
+           {:ok, logged_actions} <- find_logged_actions(strategy, dsl),
+           {:ok, dsl} <- persist_logged_actions(strategy, dsl, logged_actions) do
+        persist_logged_fields(strategy, dsl, logged_actions)
+      end
+    else
+      {:ok, dsl}
     end
   end
 
@@ -144,5 +164,29 @@ defmodule AshAuthentication.AddOn.AuditLog.Transformer do
            ) do
       {:ok, Transformer.add_entity(dsl, [:preparations], prep)}
     end
+  end
+end
+
+defmodule AshAuthentication.AddOn.AuditLog.Transformer.AfterActions do
+  @moduledoc false
+  use Spark.Dsl.Transformer
+
+  def after?(Ash.Resource.Transformers.SetPrimaryActions), do: true
+  def after?(AshAuthentication.Strategy.Custom.Transformer), do: true
+  def after?(_), do: false
+
+  def transform(dsl) do
+    dsl
+    |> AshAuthentication.Info.authentication_add_ons()
+    |> Enum.reduce_while({:ok, dsl}, fn
+      %AshAuthentication.AddOn.AuditLog{} = strategy, {:ok, dsl} ->
+        case AshAuthentication.AddOn.AuditLog.Transformer.refresh_actions(strategy, dsl) do
+          {:ok, dsl} -> {:cont, {:ok, dsl}}
+          error -> {:halt, error}
+        end
+
+      _, state ->
+        {:cont, state}
+    end)
   end
 end
