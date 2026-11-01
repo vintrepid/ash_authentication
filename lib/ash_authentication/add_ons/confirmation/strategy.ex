@@ -55,6 +55,8 @@ defimpl AshAuthentication.Strategy, for: AshAuthentication.AddOn.Confirmation do
   def plug(strategy, :confirm, conn), do: Confirmation.Plug.confirm(conn, strategy)
   def plug(strategy, :accept, conn), do: Confirmation.Plug.accept(conn, strategy)
 
+  def action(strategy, action_name, params), do: action(strategy, action_name, params, [])
+
   @doc false
   @spec action(Confirmation.t(), action, map, keyword) :: {:ok, Resource.record()} | {:error, any}
   def action(strategy, :confirm, params, options),

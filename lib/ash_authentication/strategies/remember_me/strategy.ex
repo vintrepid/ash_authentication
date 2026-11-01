@@ -32,6 +32,8 @@ defimpl AshAuthentication.Strategy, for: AshAuthentication.Strategy.RememberMe d
   @spec plug(RememberMe.t(), Strategy.phase(), Conn.t()) :: Conn.t()
   def plug(_strategy, _phase, conn), do: conn
 
+  def action(strategy, action_name, params), do: action(strategy, action_name, params, [])
+
   @doc false
   @spec action(RememberMe.t(), Strategy.action(), map, keyword) ::
           :ok | {:ok, Resource.record()} | {:error, any}

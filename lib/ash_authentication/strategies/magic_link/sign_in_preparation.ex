@@ -71,12 +71,11 @@ defmodule AshAuthentication.Strategy.MagicLink.SignInPreparation do
   defp revoke_single_use_token(strategy, query, token, context) do
     if strategy.single_use_token? do
       token_resource = Info.authentication_tokens_token_resource!(query.resource)
-      store_all_tokens? = Info.authentication_tokens_store_all_tokens?(query.resource)
 
       opts =
         context
         |> Ash.Context.to_opts()
-        |> Keyword.put(:store_all_tokens?, store_all_tokens?)
+        |> Keyword.put(:single_use?, true)
 
       TokenResource.revoke(token_resource, token, opts)
     else
@@ -92,8 +91,15 @@ defmodule AshAuthentication.Strategy.MagicLink.SignInPreparation do
       end
 
     case Jwt.token_for_user(record, extra_claims, Ash.Context.to_opts(context)) do
-      {:ok, token, _claims} -> {:ok, [Resource.put_metadata(record, :token, token)]}
-      {:error, error} -> {:error, error}
+      {:ok, token, _claims} ->
+        {:ok, [Resource.put_metadata(record, :token, token)]}
+
+      :error ->
+        {:error,
+         Errors.InvalidToken.exception(
+           reason: "Could not generate sign-in token",
+           type: :magic_link
+         )}
     end
   end
 

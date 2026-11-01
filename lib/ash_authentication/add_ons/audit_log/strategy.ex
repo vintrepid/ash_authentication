@@ -31,6 +31,9 @@ defimpl AshAuthentication.Strategy, for: AshAuthentication.AddOn.AuditLog do
   @impl true
   def plug(_strategy, _, conn), do: conn
 
+  @impl true
+  def action(strategy, action_name, params), do: action(strategy, action_name, params, [])
+
   @doc false
   @impl true
   def action(strategy, _action, _params, _options) do

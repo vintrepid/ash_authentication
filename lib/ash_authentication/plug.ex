@@ -76,7 +76,6 @@ defmodule AshAuthentication.Plug do
   alias Ash.Resource
   alias AshAuthentication.Plug.{Defaults, Helpers, Macros}
   alias Plug.Conn
-  require Macros
 
   @type activity :: {atom, atom}
   @type token :: String.t()
@@ -114,7 +113,7 @@ defmodule AshAuthentication.Plug do
       |> Macro.expand_once(__CALLER__)
 
     quote do
-      require Macros
+      require AshAuthentication.Plug.Macros
       Macros.validate_subject_name_uniqueness(unquote(otp_app))
 
       @behaviour AshAuthentication.Plug

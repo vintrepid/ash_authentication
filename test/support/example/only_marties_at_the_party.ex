@@ -81,6 +81,8 @@ defmodule Example.OnlyMartiesAtTheParty do
       store_authentication_result(conn, result)
     end
 
+    def action(strategy, action_name, params), do: action(strategy, action_name, params, [])
+
     def action(strategy, :sign_in, params, options) do
       name_field = strategy.name_field
       name = Map.get(params, to_string(name_field))

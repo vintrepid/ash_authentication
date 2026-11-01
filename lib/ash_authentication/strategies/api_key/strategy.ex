@@ -28,6 +28,8 @@ defimpl AshAuthentication.Strategy, for: AshAuthentication.Strategy.ApiKey do
   @spec actions(ApiKey.t()) :: [Strategy.action()]
   def actions(_strategy), do: [:sign_in]
 
+  def action(strategy, action_name, params), do: action(strategy, action_name, params, [])
+
   @doc false
   @spec action(ApiKey.t(), Strategy.action(), map, keyword) ::
           :ok | {:ok, Resource.record()} | {:error, any}

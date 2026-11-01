@@ -49,6 +49,8 @@ defimpl AshAuthentication.Strategy, for: AshAuthentication.Strategy.MagicLink do
   def plug(strategy, :accept, conn), do: MagicLink.Plug.accept(conn, strategy)
   def plug(strategy, :sign_in, conn), do: MagicLink.Plug.sign_in(conn, strategy)
 
+  def action(strategy, action_name, params), do: action(strategy, action_name, params, [])
+
   @doc false
   @spec action(MagicLink.t(), Strategy.action(), map, keyword) ::
           :ok | {:ok, Resource.record()} | {:error, any}

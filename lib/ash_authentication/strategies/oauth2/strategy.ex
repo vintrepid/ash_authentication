@@ -61,6 +61,8 @@ defimpl AshAuthentication.Strategy, for: AshAuthentication.Strategy.OAuth2 do
   def plug(strategy, :request, conn), do: OAuth2.Plug.request(conn, strategy)
   def plug(strategy, :callback, conn), do: OAuth2.Plug.callback(conn, strategy)
 
+  def action(strategy, action_name, params), do: action(strategy, action_name, params, [])
+
   @doc """
   Perform actions.
   """

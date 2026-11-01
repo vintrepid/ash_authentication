@@ -10,7 +10,7 @@ defmodule AshAuthentication.MixProject do
   Authentication extension for the Ash Framework.
   """
 
-  @version "4.14.2"
+  @version "4.15.0"
 
   def project do
     [
@@ -30,10 +30,11 @@ defmodule AshAuthentication.MixProject do
       docs: &docs/0,
       aliases: aliases(),
       description: @description,
-      preferred_cli_env: [ci: :test],
       consolidate_protocols: Mix.env() == :prod
     ]
   end
+
+  def cli, do: [preferred_envs: [ci: :test]]
 
   def package do
     [

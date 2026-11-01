@@ -12,17 +12,27 @@ defmodule Example do
     resource Example.Token
     resource Example.TokenWithCustomCreateTimestamp
     resource Example.User
+    resource Example.OAuthAuditLogUserIdentity
     resource Example.UserIdentity
     resource Example.UserWithAuditLog
+    resource Example.UserWithConfirmationFieldPolicy
     resource Example.UserWithEmptyIncludes
     resource Example.UserWithExcludedActions
     resource Example.UserWithExcludedStrategies
     resource Example.UserWithExplicitIncludes
+    resource Example.UserWithOAuthAuditLog
+    resource Example.UserWithGenericPasswordReset
+    resource Example.UserWithOauth2Email
+    resource Example.UserWithOauth2EmailIdentity
     resource Example.UserWithRegisterMagicLink
+    resource Example.UserWithRequiredConfirmation
     resource Example.UserWithRememberMe
+    resource Example.UserWithRememberMeTokenOptional
     resource Example.UserWithRenamedAuditLog
     resource Example.UserWithSelectiveStrategyIncludes
     resource Example.UserWithTokenRequired
+    resource Example.UserWithUnselectedConfirmation
+    resource Example.UserWithUnstoredSignInTokens
     resource Example.UserWithWildcardAndExclusions
   end
 

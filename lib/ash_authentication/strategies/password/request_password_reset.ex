@@ -14,7 +14,6 @@ defmodule AshAuthentication.Strategy.Password.RequestPasswordReset do
   """
   use Ash.Resource.Actions.Implementation
   alias AshAuthentication.{Info, Strategy.Password}
-  require Ash.Query
   require Logger
 
   @doc false
@@ -57,12 +56,13 @@ defmodule AshAuthentication.Strategy.Password.RequestPasswordReset do
         :error ->
           Logger.warning("""
           Something went wrong generating a token during password reset
-          for: #{inspect(action_input.resource)} `#{identity}`
+          for: #{inspect(action_input.resource)} #{inspect(identity, printable_limit: 128)}
           """)
 
         {:error, error} ->
           Logger.warning("""
-          Something went wrong resetting password for #{inspect(action_input.resource)} `#{identity}`
+          Something went wrong resetting password for #{inspect(action_input.resource)} \
+          #{inspect(identity, printable_limit: 128)}
 
           #{Exception.format(:error, error)}
           """)

@@ -81,7 +81,7 @@ defmodule AshAuthentication.Strategy.MagicLinkTest do
               }} = MagicLink.Actions.sign_in(strategy, %{"token" => token <> "a"}, [])
     end
 
-    test "when the single-use revoke fails, the upsert rolls back and no user is persisted" do
+    test "an already revoked token cannot register a user" do
       strategy =
         Info.strategy!(Example.UserWithRegisterMagicLink, :magic_link)
 
@@ -101,18 +101,15 @@ defmodule AshAuthentication.Strategy.MagicLinkTest do
         |> String.split("\"", parts: 2)
         |> Enum.at(0)
 
-      # Simulate a concurrent request that already committed the revocation.
       {:ok, token_resource} =
         Info.authentication_tokens_token_resource(Example.UserWithRegisterMagicLink)
 
       :ok =
-        AshAuthentication.TokenResource.Actions.revoke(token_resource, token,
-          store_all_tokens?: true
-        )
+        AshAuthentication.TokenResource.Actions.revoke(token_resource, token, single_use?: true)
 
       assert {:error, _} = MagicLink.Actions.sign_in(strategy, %{"token" => token}, [])
 
-      # The upsert must have rolled back — no user record exists for this email.
+      # Verification rejects the revoked token, so the upsert never runs.
       import Ecto.Query
 
       assert Example.Repo.aggregate(
