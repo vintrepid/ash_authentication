@@ -316,7 +316,9 @@ defmodule AshAuthentication.Strategy.Password.Actions do
         }
       })
       |> Changeset.for_update(resettable.password_reset_action_name, params, options)
-      |> Changeset.after_action(&revoke_reset_token(&1, &2, resource, token, revoke_opts))
+      |> Changeset.after_action(&revoke_reset_token(&1, &2, resource, token, revoke_opts),
+        prepend?: true
+      )
       |> Ash.update()
     else
       {:error, %Changeset{} = changeset} -> {:error, changeset}
