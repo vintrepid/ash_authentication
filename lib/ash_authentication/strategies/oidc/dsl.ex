@@ -54,7 +54,12 @@ defmodule AshAuthentication.Strategy.Oidc.Dsl do
              "client_secret_post",
              "client_secret_jwt",
              "private_key_jwt",
-             "none"
+             "none",
+             :client_secret_basic,
+             :client_secret_post,
+             :client_secret_jwt,
+             :private_key_jwt,
+             :none
            ]},
         default: "client_secret_basic",
         doc: "The client authentication method to use.",

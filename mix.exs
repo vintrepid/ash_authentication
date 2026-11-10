@@ -224,8 +224,8 @@ defmodule AshAuthentication.MixProject do
       {:argon2_elixir, "~> 4.1 and >= 4.1.3", optional: true},
       {:ash, ash_version("~> 3.7")},
       # Fix Apple callback claim overrides (EEF-CVE-2026-117656).
-      # The owned fork verifies compatibility with Assent 0.3.
-      {:assent, "~> 0.3.2"},
+      # Preserve both Assent 0.3 string and 0.4 atom authentication methods.
+      {:assent, "~> 0.3.2 or ~> 0.4.0"},
       {:bcrypt_elixir, "~> 3.3 and >= 3.3.2"},
       {:castore, "~> 1.0 and >= 1.0.22"},
       {:finch, "~> 0.24.0"},

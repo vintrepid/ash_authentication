@@ -170,7 +170,11 @@ defmodule AshAuthentication.Strategy.OAuth2.Plug do
         config
         |> Map.put(:jwt_algorithm, jwt_algorithm)
         |> Map.put(:redirect_uri, redirect_uri)
-        |> Map.update(:client_authentication_method, nil, &to_string/1)
+        |> Map.update(
+          :client_authentication_method,
+          nil,
+          &AshAuthentication.AssentCompatibility.client_authentication_method/1
+        )
         |> Enum.reject(&is_nil(elem(&1, 1)))
 
       {:ok, config}
