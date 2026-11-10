@@ -247,7 +247,7 @@ defmodule AshAuthentication.MixProject do
       {:doctor, "~> 0.23.0", only: [:dev, :test]},
       {:ex_check, "~> 0.17.1", only: [:dev, :test]},
       {:ex_doc, "~> 0.40.4", only: [:dev, :test]},
-      {:git_ops, "~> 2.12 and >= 2.12.3", only: [:dev, :test], runtime: false},
+      {:git_ops, "~> 2.12 and >= 2.12.4", only: [:dev, :test], runtime: false},
       {:mimic, "~> 2.5", only: [:dev, :test]},
       {:simple_sat, "~> 0.1.4", only: [:dev, :test]},
       {:sobelow, "~> 0.18.1", only: [:dev, :test]},
