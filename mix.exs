@@ -233,7 +233,7 @@ defmodule AshAuthentication.MixProject do
       {:jason, "~> 1.4 and >= 1.4.5"},
       {:joken, "~> 2.7"},
       {:plug, "~> 1.20 and >= 1.20.3"},
-      {:spark, "~> 2.7 and >= 2.7.9"},
+      {:spark, "~> 2.7 and >= 2.7.10"},
       {:splode, "~> 0.3.3"},
 
       # Dev/test
@@ -243,7 +243,7 @@ defmodule AshAuthentication.MixProject do
       {:ash_postgres, "~> 2.15 and >= 2.15.2", optional: true},
       {:bandit, "~> 1.14 and >= 1.14.1", only: [:dev, :test]},
       {:credo, "~> 1.7 and >= 1.7.19", only: [:dev, :test], runtime: false},
-      {:dialyxir, "~> 1.4 and >= 1.4.8", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 1.4 and >= 1.4.9", only: [:dev, :test], runtime: false},
       {:doctor, "~> 0.23.0", only: [:dev, :test]},
       {:ex_check, "~> 0.17.1", only: [:dev, :test]},
       {:ex_doc, "~> 0.40.4", only: [:dev, :test]},
