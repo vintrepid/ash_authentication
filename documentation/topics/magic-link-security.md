@@ -6,6 +6,12 @@ SPDX-License-Identifier: MIT
 
 # Magic link security review and hardening plan
 
+This is the historical v4.14.1 backport review. The fork now integrates the
+complete upstream v4.15.0 maintenance release; its native conditional-upsert
+primitive supersedes the lock-and-insert implementation described below. See
+[the security refresh](security-refresh-4-15-0.md) for current provenance,
+compatibility, verification, and the separate Phoenix dependency requirement.
+
 This note records the security review that led to the
 `security/magic-link-hardening-v4` branch. It covers Ash Authentication's
 responsibilities, the obligations of Phoenix integrations and applications,

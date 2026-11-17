@@ -10,6 +10,7 @@ config :ash_authentication, Example.Repo,
   username: System.get_env("POSTGRES_USER", "postgres"),
   password: System.get_env("POSTGRES_PASSWORD", "postgres"),
   hostname: "localhost",
+  port: String.to_integer(System.get_env("ASH_AUTHENTICATION_TEST_PORT", "5432")),
   database: "ash_authentication_test#{System.get_env("MIX_TEST_PARTITION")}",
   pool: Ecto.Adapters.SQL.Sandbox,
   pool_size: 30

@@ -463,10 +463,9 @@ defmodule AshAuthentication.Plug.HelpersTest do
         conn
         |> Conn.put_session("user_with_token_required_token", "completely_invalid_token_format")
 
-      # The implementation expects revoke to succeed; a completely malformed
-      # token causes `Jwt.peek` to return `{:error, :token_malformed}`, which
-      # is not handled by the case clause and raises a `CaseClauseError`.
-      assert_raise CaseClauseError, fn ->
+      # The implementation expects revoke to succeed; malformed tokens are
+      # rejected by the native revocation action and its match fails.
+      assert_raise MatchError, fn ->
         conn
         |> Helpers.revoke_session_tokens(:ash_authentication)
       end

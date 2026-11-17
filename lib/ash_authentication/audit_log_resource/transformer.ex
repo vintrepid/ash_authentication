@@ -182,53 +182,51 @@ defmodule AshAuthentication.AuditLogResource.Transformer do
   defp validate_write_action(dsl, action_name) do
     with {:ok, action} <- validate_action_exists(dsl, action_name),
          :ok <- validate_field_in_values(action, :type, [:create]) do
-      case action.accept do
-        [:*] ->
-          :ok
+      validate_write_attributes(dsl, action.accept)
+    end
+  end
 
-        :* ->
-          :ok
+  defp validate_write_attributes(_dsl, [:*]), do: :ok
+  defp validate_write_attributes(_dsl, :*), do: :ok
 
-        fields ->
-          with {:ok, id} <- Info.audit_log_attributes_id(dsl),
-               {:ok, subject} <- Info.audit_log_attributes_subject(dsl),
-               {:ok, strategy} <- Info.audit_log_attributes_strategy(dsl),
-               {:ok, audit_log} <- Info.audit_log_attributes_audit_log(dsl),
-               {:ok, logged_at} <- Info.audit_log_attributes_logged_at(dsl),
-               {:ok, action_name} <- Info.audit_log_attributes_action_name(dsl),
-               {:ok, status} <- Info.audit_log_attributes_status(dsl),
-               {:ok, extra_data} <- Info.audit_log_attributes_extra_data(dsl),
-               {:ok, resource} <- Info.audit_log_attributes_resource(dsl) do
-            expected =
-              MapSet.new([
-                id,
-                subject,
-                strategy,
-                audit_log,
-                logged_at,
-                action_name,
-                status,
-                extra_data,
-                resource
-              ])
+  defp validate_write_attributes(dsl, fields) do
+    with {:ok, id} <- Info.audit_log_attributes_id(dsl),
+         {:ok, subject} <- Info.audit_log_attributes_subject(dsl),
+         {:ok, strategy} <- Info.audit_log_attributes_strategy(dsl),
+         {:ok, audit_log} <- Info.audit_log_attributes_audit_log(dsl),
+         {:ok, logged_at} <- Info.audit_log_attributes_logged_at(dsl),
+         {:ok, action_name} <- Info.audit_log_attributes_action_name(dsl),
+         {:ok, status} <- Info.audit_log_attributes_status(dsl),
+         {:ok, extra_data} <- Info.audit_log_attributes_extra_data(dsl),
+         {:ok, resource} <- Info.audit_log_attributes_resource(dsl) do
+      expected =
+        MapSet.new([
+          id,
+          subject,
+          strategy,
+          audit_log,
+          logged_at,
+          action_name,
+          status,
+          extra_data,
+          resource
+        ])
 
-            fields = MapSet.new(fields)
+      fields = MapSet.new(fields)
 
-            if MapSet.subset?(expected, fields) do
-              :ok
-            else
-              {:error,
-               DslError.exception(
-                 module: Transformer.get_persisted(dsl, :module),
-                 path: [:actions, :create, action_name, :accept],
-                 message: """
-                 Expected the `#{inspect(action_name)}` action to accept at least the required attributes.
+      if MapSet.subset?(expected, fields) do
+        :ok
+      else
+        {:error,
+         DslError.exception(
+           module: Transformer.get_persisted(dsl, :module),
+           path: [:actions, :create, action_name, :accept],
+           message: """
+           Expected the `#{inspect(action_name)}` action to accept at least the required attributes.
 
-                 Missing: #{inspect(MapSet.difference(expected, fields) |> Enum.to_list())}
-                 """
-               )}
-            end
-          end
+           Missing: #{inspect(MapSet.difference(expected, fields) |> Enum.to_list())}
+           """
+         )}
       end
     end
   end
