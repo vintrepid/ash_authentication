@@ -1,0 +1,206 @@
+{
+  "schema": "vintrepid.authentication-security.v1",
+  "package": "ash_authentication",
+  "version": "4.15.0",
+  "repository": "https://github.com/vintrepid/ash_authentication.git",
+  "upstream": {
+    "repository": "https://github.com/team-alembic/ash_authentication.git",
+    "tag": "v4.15.0",
+    "tag_object": "f97e011c3a936e4fdb340382a7bc003ad1b6cb90",
+    "commit": "d6b2be35cf8f0b8ab84e7a934cfb0d91de0a3c17",
+    "integration": "full maintenance release merge"
+  },
+  "retained_fork_ancestors": [
+    "f39c0add31582ba158b3097ad4998827ab3bc1b1",
+    "42d1af7c9d2078e193b566b75467aa1e3f9acf43"
+  ],
+  "advisories": [
+    {
+      "id": "EEF-CVE-2026-86533",
+      "cve": "CVE-2026-86533",
+      "github_advisory": "GHSA-w374-hvrx-66hg",
+      "url": "https://github.com/team-alembic/ash_authentication/security/advisories/GHSA-w374-hvrx-66hg",
+      "fixed_version": "4.15.0",
+      "upstream_patch_commit": "a3f49f758f013d2ff086dd9c5ef2d94e921711b4",
+      "security_sources": [
+        "lib/ash_authentication/plug/helpers.ex",
+        "lib/ash_authentication/token_resource/is_revoked.ex",
+        "lib/ash_authentication/token_resource/is_revoked_preparation.ex"
+      ],
+      "regression_tests": [
+        "test/ash_authentication/fork_security_regression_test.exs",
+        "test/ash_authentication/plug/helpers_test.exs"
+      ]
+    }
+  ],
+  "source_integrity": [
+    {
+      "path": "lib/ash_authentication.ex",
+      "sha256": "21f7a008640cc896e1d7109f983e9ce448b7363a5bf8aa713e14b514ad181716",
+      "upstream_identical": false
+    },
+    {
+      "path": "lib/ash_authentication/plug/helpers.ex",
+      "sha256": "e66b1cba8b643dc13bc697f4718ecda207a607623adfb48b1a993b8499556d8a",
+      "upstream_identical": true
+    },
+    {
+      "path": "lib/ash_authentication/token_resource/is_revoked.ex",
+      "sha256": "c4f4f45a43759445cacaf7079e27f5150713028cc99a99812f6f24996c064b84",
+      "upstream_identical": true
+    },
+    {
+      "path": "lib/ash_authentication/token_resource/is_revoked_preparation.ex",
+      "sha256": "ce85c9c0efa03f87f3ba655e83997550f54c43c795bb19822dba958fa042e344",
+      "upstream_identical": true
+    },
+    {
+      "path": "lib/ash_authentication/token_resource/actions.ex",
+      "sha256": "4c03537f7fae12cd8c44d494d8a4d91265571b15686bb8c2c39537e8b33db760",
+      "upstream_identical": false,
+      "retained_guarantee": "Legacy explicit store_all_tokens? selects upstream native conditional single_use? writes, explicit single_use? takes precedence; native result checks are factored into same-file fail-closed helpers."
+    },
+    {
+      "path": "lib/ash_authentication/token_resource/revoke_token_change.ex",
+      "sha256": "65be85cf4bbef06de141a41a3f101bd480c1afc97ae5c6a4a7f75171dbce96d3",
+      "upstream_identical": true
+    },
+    {
+      "path": "lib/ash_authentication/jwt.ex",
+      "sha256": "50c0cea1a843205b90ecffc62ee0c763ab1337577b66a1ab8f3ac669c8d926a0",
+      "upstream_identical": true
+    },
+    {
+      "path": "lib/ash_authentication/strategies/magic_link/sign_in_change.ex",
+      "sha256": "b5978a2c989e04a54c7b47018bcd477e1596e0e5c5dcf5a9b702165449b72d4c",
+      "upstream_identical": false
+    },
+    {
+      "path": "lib/ash_authentication/strategies/magic_link/sign_in_preparation.ex",
+      "sha256": "48a1fe172538133017b52af4b775e921a78c506e4acdeecc3b3cfbb1459bf7b7",
+      "upstream_identical": false
+    },
+    {
+      "path": "lib/ash_authentication/strategies/password/actions.ex",
+      "sha256": "b4fa9787ff4385fb49631b5ed0883ea661ef76b00f997cb65b7eba65464e8f2c",
+      "upstream_identical": false
+    },
+    {
+      "path": "lib/ash_authentication/strategies/password/sign_in_with_token_preparation.ex",
+      "sha256": "3860ec83040aff784e308404b55336bb443450a56489864f960e224bdee173c6",
+      "upstream_identical": true
+    },
+    {
+      "path": "lib/ash_authentication/add_ons/confirmation/actions.ex",
+      "sha256": "7a245678a125a67b72d68fd8dc5a4183ef71c19f44cafb4bf5b3ae9a756f4284",
+      "upstream_identical": false
+    },
+    {
+      "path": "lib/ash_authentication/strategies/remember_me/token/helpers.ex",
+      "sha256": "60ef4e07202752dc3eb25e16df8f1ab3e86dfad5d656d3ee94bbcea9d5cc0f2a",
+      "upstream_identical": true
+    },
+    {
+      "path": "lib/ash_authentication/strategies/api_key/sign_in_preparation.ex",
+      "sha256": "2347d42e490591b536c2ef572bd46890faf168a9fac22fe63c1b2f472f08abfc",
+      "upstream_identical": false
+    },
+    {
+      "path": "lib/ash_authentication/strategies/oauth2/sign_in_preparation.ex",
+      "sha256": "45da1659e006247a5340c14a9237a384c6e7ee0c7047a83edd1d797cf817aa79",
+      "upstream_identical": false
+    },
+    {
+      "path": "test/ash_authentication/fork_security_regression_test.exs",
+      "sha256": "36697b3715be455a9bef7c4874bcd5e17aee2c3585087c7c88e95534bc68178a",
+      "upstream_identical": false
+    },
+    {
+      "path": "test/ash_authentication/single_use_token_concurrency_test.exs",
+      "sha256": "ce1dd5f89102fb54f80c805c00026b5d6c148c5959328a757095265d0c9180fc",
+      "upstream_identical": true
+    },
+    {
+      "path": "test/ash_authentication/plug/helpers_test.exs",
+      "sha256": "e44c320d0f7c7562d69f98757c5c122406fa894c59afeb633798673a5835e197",
+      "upstream_identical": false
+    },
+    {
+      "path": "test/ash_authentication/token_resource/actions_test.exs",
+      "sha256": "0b1277d5a0b53fb39a6265847476974542c81b9f15742287fa4107aa9136b728",
+      "upstream_identical": true
+    }
+  ],
+  "retained_fork_guarantees": [
+    "Exclusive legacy explicit stored and unstored revocation uses the upstream conditional native write, not a row-lock backport.",
+    "Password reset and confirmation roll back on revocation failure.",
+    "Magic-link token-generation failures are returned errors.",
+    "Existing insert-only revocation DSL action names remain available for host configuration compatibility."
+  ],
+  "dependency_floors": {
+    "ash": "3.34.6",
+    "decimal": "3.1.2",
+    "spark": "2.7.6"
+  },
+  "independent_host_requirement": {
+    "ash_authentication_phoenix": "2.17.4",
+    "advisory_url": "https://github.com/team-alembic/ash_authentication_phoenix/security/advisories/GHSA-m6x4-4gvp-xwjr"
+  },
+  "verification": {
+    "status": "passed",
+    "owning_command": "mix check --no-retry",
+    "owning_toolchain": {
+      "elixir": "1.18.3",
+      "otp": "27.3.4",
+      "source": ".tool-versions"
+    },
+    "native_tools_passed": [
+      "compiler",
+      "credo",
+      "dialyzer",
+      "doctor",
+      "ex_doc",
+      "ex_unit",
+      "formatter",
+      "generate_migrations",
+      "hex_audit",
+      "reuse",
+      "sobelow",
+      "spark_cheat_sheets",
+      "spark_formatter",
+      "unused_deps"
+    ],
+    "native_tools_skipped": [
+      {
+        "tool": "gettext",
+        "reason": "Package absent; unchanged native detection."
+      }
+    ],
+    "suite_result": {
+      "doctests": 23,
+      "properties": 1,
+      "tests": 644,
+      "failures": 0,
+      "total": 668
+    },
+    "independent_security_tests": 7,
+    "separate_connection_concurrency_scenarios": 5,
+    "concurrent_redemptions_per_scenario": 24,
+    "app_runtime_behavioral_verification": {
+      "elixir": "1.20.4",
+      "otp": "29",
+      "command": "mix test --no-color",
+      "total": 668,
+      "failures": 0
+    },
+    "audit_command": "mix hex.audit",
+    "audit_result": "No retired or security advisory packages found",
+    "audit_exclusions": []
+  },
+  "consumer_verification_contract": "Independently anchor this document to a reviewed immutable Git revision and repository; verify lock revision, actual fetched HEAD, clean runtime sources, every source_integrity SHA-256 and loaded app version. Neither a version string nor Hex audit alone verifies a Git override.",
+  "compatibility_notes": [
+    "Private-helper factoring preserves branches, caller scope, callback timing, error shapes and constant-time API-key work; source hashes include every factored security helper body in its owning file.",
+    "The native owning pipeline is run on declared Elixir 1.18.3/OTP 27; the full behavioral suite also runs on Elixir 1.20.4/OTP 29.",
+    "Upstream Strategy.action/3 remains compatible. Elixir 1.20 deprecates its default protocol argument; Ash.Resource.record/0 is intentionally absent on OTP 29. No warning or audit suppressions are introduced."
+  ]
+}

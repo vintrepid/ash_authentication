@@ -66,27 +66,29 @@ defmodule AshAuthentication.Strategy.OAuth2.SignInPreparation do
         opts = [tenant: context.tenant, actor: context.actor]
 
         query
-        |> Query.after_action(fn
-          query, [user] ->
-            with :ok <- verify_identity(user, query, strategy, opts),
-                 {:ok, user} <- maybe_update_identity(user, query, strategy, opts) do
-              {:ok, [maybe_generate_token(user, context)]}
-            end
-
-          _, _ ->
-            {:error,
-             AuthenticationFailed.exception(
-               strategy: strategy,
-               query: query,
-               caused_by: %{
-                 module: __MODULE__,
-                 action: query.action,
-                 strategy: strategy,
-                 message: "Query should return a single user"
-               }
-             )}
-        end)
+        |> Query.after_action(&handle_sign_in_result(&1, &2, strategy, opts, context, query))
     end
+  end
+
+  defp handle_sign_in_result(query, [user], strategy, opts, context, _original_query) do
+    with :ok <- verify_identity(user, query, strategy, opts),
+         {:ok, user} <- maybe_update_identity(user, query, strategy, opts) do
+      {:ok, [maybe_generate_token(user, context)]}
+    end
+  end
+
+  defp handle_sign_in_result(_query, _result, strategy, _opts, _context, original_query) do
+    {:error,
+     AuthenticationFailed.exception(
+       strategy: strategy,
+       query: original_query,
+       caused_by: %{
+         module: __MODULE__,
+         action: original_query.action,
+         strategy: strategy,
+         message: "Query should return a single user"
+       }
+     )}
   end
 
   defp verify_identity(_user, _query, strategy, _opts) when is_falsy(strategy.identity_resource),

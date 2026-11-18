@@ -76,22 +76,26 @@ if Code.ensure_loaded?(Igniter) do
 
     defp find_all_token_resources(igniter) do
       Igniter.Project.Module.find_all_matching_modules(igniter, fn _module, zipper ->
-        with {:ok, zipper} <- Igniter.Code.Module.move_to_use(zipper, Ash.Resource),
-             {:ok, zipper} <- Igniter.Code.Function.move_to_nth_argument(zipper, 1),
-             {:ok, zipper} <- Igniter.Code.Keyword.get_key(zipper, :extensions) do
-          if Igniter.Code.List.list?(zipper) do
-            match?(
-              {:ok, _},
-              Igniter.Code.List.move_to_list_item(
-                zipper,
-                &Igniter.Code.Common.nodes_equal?(&1, AshAuthentication.TokenResource)
-              )
-            )
-          else
-            Igniter.Code.Common.nodes_equal?(zipper, AshAuthentication.TokenResource)
-          end
-        end
+        token_resource_extensions?(zipper)
       end)
+    end
+
+    defp token_resource_extensions?(zipper) do
+      with {:ok, zipper} <- Igniter.Code.Module.move_to_use(zipper, Ash.Resource),
+           {:ok, zipper} <- Igniter.Code.Function.move_to_nth_argument(zipper, 1),
+           {:ok, zipper} <- Igniter.Code.Keyword.get_key(zipper, :extensions) do
+        if Igniter.Code.List.list?(zipper) do
+          match?(
+            {:ok, _},
+            Igniter.Code.List.move_to_list_item(
+              zipper,
+              &Igniter.Code.Common.nodes_equal?(&1, AshAuthentication.TokenResource)
+            )
+          )
+        else
+          Igniter.Code.Common.nodes_equal?(zipper, AshAuthentication.TokenResource)
+        end
+      end
     end
 
     defp maybe_fix_is_revoked_action(igniter, resource) do
@@ -144,13 +148,7 @@ if Code.ensure_loaded?(Igniter) do
              zipper,
              &Igniter.Code.Tuple.elem_equals?(&1, 0, :do)
            ) do
-          Igniter.Code.Common.within(zipper, fn zipper ->
-            {:ok,
-             Igniter.Code.Common.remove(
-               zipper,
-               &Igniter.Code.Function.function_call?(&1, option, 1)
-             )}
-          end)
+          remove_argument_option_in_block(zipper, option)
         else
           Igniter.Code.List.remove_from_list(
             zipper,
@@ -158,6 +156,16 @@ if Code.ensure_loaded?(Igniter) do
           )
         end
       end
+    end
+
+    defp remove_argument_option_in_block(zipper, option) do
+      Igniter.Code.Common.within(zipper, fn zipper ->
+        {:ok,
+         Igniter.Code.Common.remove(
+           zipper,
+           &Igniter.Code.Function.function_call?(&1, option, 1)
+         )}
+      end)
     end
 
     def add_remember_me_to_magic_link_sign_in(igniter, _opts) do

@@ -305,15 +305,7 @@ defmodule AshAuthentication do
           Keyword.put(options, :not_found_error?, true)
         )
         |> Ash.read_one(not_found_error?: true)
-        |> case do
-          # This is here for backwards compatibility with the old api
-          # when this argument was not added
-          {:error, %Ash.Error.Invalid{errors: [%Ash.Error.Query.NotFound{} = not_found]}} ->
-            {:error, not_found}
-
-          other ->
-            other
-        end
+        |> normalize_subject_result()
       else
         do_subject_to_user(subject, resource, options)
       end
@@ -322,6 +314,14 @@ defmodule AshAuthentication do
         {:error, NotFound.exception([])}
     end
   end
+
+  # Preserve the old API's not-found shape when the subject argument was not present.
+  defp normalize_subject_result(
+         {:error, %Ash.Error.Invalid{errors: [%Ash.Error.Query.NotFound{} = not_found]}}
+       ),
+       do: {:error, not_found}
+
+  defp normalize_subject_result(other), do: other
 
   def do_subject_to_user(subject, resource, options) when is_binary(subject),
     do: subject |> URI.parse() |> subject_to_user(resource, options)
